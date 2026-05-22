@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MathPath</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e1210;
+      --surface: #161c19;
+      --surface2: #1e2822;
+      --border: #2a3830;
+      --accent: #4ade80;
+      --accent2: #22c55e;
+      --accent-dim: rgba(74,222,128,0.12);
+      --accent-glow: rgba(74,222,128,0.25);
+      --text: #e8f0ec;
+      --text2: #8fa898;
+      --text3: #556a5e;
+      --danger: #f87171;
+      --warn: #fbbf24;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Syne', sans-serif;
+      --r: 10px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(14,18,16,0.92);
+      backdrop-filter: blur(12px);
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--accent);
+    }
+    .logo span { color: var(--text); }
+
+    .header-tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ── LAYOUT ── */
+    .app {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ── SIDEBAR ── */
+    nav {
+      width: 230px;
+      min-width: 230px;
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 0;
+      overflow-y: auto;
+      position: sticky;
+      top: 61px;
+      height: calc(100vh - 61px);
+    }
+
+    .nav-group-label {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0 1.2rem 0.5rem;
+      margin-top: 1.2rem;
+    }
+    .nav-group-label:first-child { margin-top: 0; }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.55rem 1.2rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text2);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      border-left: 2px solid transparent;
+    }
+    nav a:hover { color: var(--text); background: var(--surface2); }
+    nav a.active {
+      color: var(--accent);
+      background: var(--accent-dim);
+      border-left-color: var(--accent);
+    }
+    nav a .icon {
+      width: 18px;
+      height: 18px;
+      opacity: 0.6;
+      flex-shrink: 0;
+    }
+    nav a.active .icon { opacity: 1; }
+
+    /* ── MAIN CONTENT ── */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2.5rem 3rem;
+      max-width: 860px;
+    }
+
+    /* ── PANELS ── */
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadein 0.2s ease; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* ── WELCOME ── */
+    .welcome-hero {
+      margin-bottom: 2.5rem;
+    }
+    .welcome-hero h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .welcome-hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .welcome-hero p {
+      font-size: 1rem;
+      color: var(--text2);
+      line-height: 1.7;
+      max-width: 540px;
+    }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 10px;
+      margin-top: 2rem;
+    }
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.1rem;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .tool-card:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      transform: translateY(-2px);
+    }
+    .tool-card-icon {
+      font-size: 1.4rem;
+      margin-bottom: 0.6rem;
+    }
+    .tool-card-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .tool-card-desc {
+      font-size: 0.72rem;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    /* ── TOOL PANEL ── */
+    .tool-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .tool-header-icon {
+      font-size: 2rem;
+      line-height: 1;
+      padding-top: 2px;
+    }
+    .tool-title {
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.3rem;
+    }
+    .tool-subtitle {
+      font-size: 0.82rem;
+      color: var(--text2);
+      font-family: var(--mono);
+      line-height: 1.5;
+    }
+
+    .tool-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 640px) { .tool-body { grid-template-columns: 1fr; } }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    input[type="text"], input[type="number"] {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0.6rem 0.9rem;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus, input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .radio-opt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--text2);
+    }
+    .radio-opt input { accent-color: var(--accent); }
+
+    .btn {
+      background: var(--accent);
+      color: #0a1a0f;
+      border: none;
+      border-radius: 7px;
+      padding: 0.65rem 1.6rem;
+      font-family: var(--sans);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.01em;
+    }
+    .btn:hover { background: var(--accent2); transform: translateY(-1px); }
+    .btn:active { transform: none; }
+
+    /* ── RESULT BOX ── */
+    .result-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.2rem 1.4rem;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+    }
+    .result-box.has-result { border-color: var(--accent); }
+    .result-box.has-false { border-color: var(--text3); }
+
+    .result-prefix {
+      font-family: var(--mono);
+      color: var(--text3);
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+    .result-value {
+      font-family: var(--mono);
+      font-size: 1.05rem;
+      color: var(--accent);
+      line-height: 1.5;
+      word-break: break-all;
+    }
+    .result-value.negative { color: var(--text2); }
+
+    .result-placeholder {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text3);
+    }
+
+    /* ── CODE BLOCK ── */
+    .code-toggle {
+      margin-top: 2rem;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .code-toggle:hover { border-color: var(--text2); color: var(--text2); }
+
+    .code-block {
+      display: none;
+      margin-top: 0.8rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.2rem 1.4rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.8;
+      color: var(--text2);
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .code-block.visible { display: block; animation: fadein 0.2s ease; }
+    .kw { color: #7dd3fc; }
+    .fn { color: var(--accent); }
+    .cm { color: var(--text3); font-style: italic; }
+    .st { color: #fda4af; }
+    .nb { color: #fbbf24; }
+
+    /* ── NOTE BLOCK ── */
+    .note {
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--r) var(--r) 0;
+      padding: 0.7rem 1rem;
+      font-size: 0.8rem;
+      color: var(--text2);
+      margin-top: 1rem;
+      font-family: var(--mono);
+    }
+
+    /* ── DEPLOY SECTION ── */
+    .deploy-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .deploy-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .deploy-card p, .deploy-card li {
+      font-size: 0.82rem;
+      color: var(--text2);
+      line-height: 1.7;
+    }
+    .deploy-card ol { padding-left: 1.2rem; margin-top: 0.5rem; }
+    .deploy-card code {
+      background: var(--surface2);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--accent);
+    }
+    .step-badge {
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 0.65rem;
+      font-family: var(--mono);
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(74,222,128,0.25);
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* mobile nav */
+    @media (max-width: 700px) {
+      nav { display: none; }
+      main { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Math<span>Path</span></div>
+  <span class="header-tag">v2.0 · GitHub Pages ready</span>
+</header>
+
+<div class="app">
+
+  <!-- ── SIDEBAR ── -->
+  <nav id="sidebar">
+    <div class="nav-group-label">Navigation</div>
+    <a onclick="show('home')" class="active" id="nav-home">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Accueil
+    </a>
+
+    <div class="nav-group-label">Vérificateurs</div>
+    <a onclick="show('premier')" id="nav-premier">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Nombre Premier
+    </a>
+    <a onclick="show('ondulant')" id="nav-ondulant">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      Nombre Ondulant
+    </a>
+    <a onclick="show('parfait')" id="nav-parfait">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12l2.5 2.5L16 9"/></svg>
+      Nombre Parfait
+    </a>
+    <a onclick="show('lisse')" id="nav-lisse">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+      Nombre Lisse
+    </a>
+    <a onclick="show('semi')" id="nav-semi">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+      Nombre Semi-Premier
+    </a>
+    <a onclick="show('marsen')" id="nav-marsen">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      Nombre Marsenne
+    </a>
+    <a onclick="show('super')" id="nav-super">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+      Super Pair Plus
+    </a>
+
+    <div class="nav-group-label">Calculs</div>
+    <a onclick="show('pgcd')" id="nav-pgcd">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+      PGCD
+    </a>
+    <a onclick="show('ppcm')" id="nav-ppcm">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+      PPCM
+    </a>
+    <a onclick="show('factoriel')" id="nav-factoriel">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+      Factoriel
+    </a>
+    <a onclick="show('puissance')" id="nav-puissance">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg>
+      Puissance
+    </a>
+    <a onclick="show('combinaison')" id="nav-combinaison">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+      Combinaison
+    </a>
+    <a onclick="show('convert')" id="nav-convert">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+      Conversion de Base
+    </a>
+
+    <div class="nav-group-label">Déploiement</div>
+    <a onclick="show('deploy')" id="nav-deploy">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+      Mettre en ligne
+    </a>
+  </nav>
+
+  <!-- ── MAIN ── -->
+  <main>
+
+    <!-- HOME -->
+    <div class="panel active" id="panel-home">
+      <div class="welcome-hero">
+        <h1>Bienvenue sur<br><em>MathPath</em></h1>
+        <p>Explorez et testez des fonctions mathématiques variées — nombres premiers, PGCD, conversions de bases, et bien plus. Cliquez sur un outil dans le menu ou dans la grille ci-dessous.</p>
+      </div>
+      <div class="tool-grid">
+        <div class="tool-card" onclick="show('premier')">
+          <div class="tool-card-icon">🔢</div>
+          <div class="tool-card-name">Nombre Premier</div>
+          <div class="tool-card-desc">diviseurs = 1 et lui-même</div>
+        </div>
+        <div class="tool-card" onclick="show('ondulant')">
+          <div class="tool-card-icon">〰️</div>
+          <div class="tool-card-name">Nombre Ondulant</div>
+          <div class="tool-card-desc">chiffres alternants</div>
+        </div>
+        <div class="tool-card" onclick="show('parfait')">
+          <div class="tool-card-icon">💎</div>
+          <div class="tool-card-name">Nombre Parfait</div>
+          <div class="tool-card-desc">= somme de ses diviseurs</div>
+        </div>
+        <div class="tool-card" onclick="show('lisse')">
+          <div class="tool-card-icon">🧮</div>
+          <div class="tool-card-name">Nombre Lisse</div>
+          <div class="tool-card-desc">plus grand facteur ≤ √n</div>
+        </div>
+        <div class="tool-card" onclick="show('semi')">
+          <div class="tool-card-icon">✂️</div>
+          <div class="tool-card-name">Semi-Premier</div>
+          <div class="tool-card-desc">produit de deux premiers</div>
+        </div>
+        <div class="tool-card" onclick="show('marsen')">
+          <div class="tool-card-icon">⚡</div>
+          <div class="tool-card-name">Marsenne</div>
+          <div class="tool-card-desc">2^p − 1</div>
+        </div>
+        <div class="tool-card" onclick="show('super')">
+          <div class="tool-card-icon">⭐</div>
+          <div class="tool-card-name">Super Pair Plus</div>
+          <div class="tool-card-desc">tous chiffres et diviseurs pairs</div>
+        </div>
+        <div class="tool-card" onclick="show('pgcd')">
+          <div class="tool-card-icon">🔗</div>
+          <div class="tool-card-name">PGCD</div>
+          <div class="tool-card-desc">Euclide ou différence</div>
+        </div>
+        <div class="tool-card" onclick="show('ppcm')">
+          <div class="tool-card-icon">🔀</div>
+          <div class="tool-card-name">PPCM</div>
+          <div class="tool-card-desc">plus petit commun multiple</div>
+        </div>
+        <div class="tool-card" onclick="show('factoriel')">
+          <div class="tool-card-icon">❗</div>
+          <div class="tool-card-name">Factoriel</div>
+          <div class="tool-card-desc">n!</div>
+        </div>
+        <div class="tool-card" onclick="show('puissance')">
+          <div class="tool-card-icon">📈</div>
+          <div class="tool-card-name">Puissance</div>
+          <div class="tool-card-desc">x^y</div>
+        </div>
+        <div class="tool-card" onclick="show('combinaison')">
+          <div class="tool-card-icon">🎲</div>
+          <div class="tool-card-name">Combinaison</div>
+          <div class="tool-card-desc">C(n, p)</div>
+        </div>
+        <div class="tool-card" onclick="show('convert')">
+          <div class="tool-card-icon">🔄</div>
+          <div class="tool-card-name">Conversion de Base</div>
+          <div class="tool-card-desc">décimal ↔ base N</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PREMIER ── -->
+    <div class="panel" id="panel-premier">
+      <div class="tool-header">
+        <div class="tool-header-icon">🔢</div>
+        <div>
+          <div class="tool-title">Nombre Premier</div>
+          <div class="tool-subtitle">Un entier n &gt; 1 est premier s'il n'a que 2 diviseurs : 1 et lui-même.</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>Entier n &gt; 1</label>
+            <input type="text" id="p-n" placeholder="ex: 17" onkeydown="if(event.key==='Enter')calcPremier()">
+          </div>
+          <button class="btn" onclick="calcPremier()">Vérifier</button>
+          <div id="p-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('p-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="p-code"><span class="kw">def</span> <span class="fn">premier</span>(x):
+    <span class="kw">if</span> x &lt; <span class="nb">2</span>:
+        <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nb">2</span>, x // <span class="nb">2</span> + <span class="nb">1</span>):
+        <span class="kw">if</span> x % i == <span class="nb">0</span>:
+            <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">return</span> <span class="kw">True</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ONDULANT ── -->
+    <div class="panel" id="panel-ondulant">
+      <div class="tool-header">
+        <div class="tool-header-icon">〰️</div>
+        <div>
+          <div class="tool-title">Nombre Ondulant</div>
+          <div class="tool-subtitle">Un entier est ondulant si ses chiffres alternent : a&lt;b&gt;a&lt;b… ou a&gt;b&lt;a&gt;b…</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>Entier (≥ 3 chiffres)</label>
+            <input type="text" id="o-n" placeholder="ex: 12121" onkeydown="if(event.key==='Enter')calcOnd()">
+          </div>
+          <button class="btn" onclick="calcOnd()">Vérifier</button>
+          <div id="o-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('o-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="o-code"><span class="kw">def</span> <span class="fn">ondulant</span>(x):
+    ch = <span class="fn">str</span>(x)
+    <span class="kw">if</span> <span class="fn">len</span>(ch) &lt; <span class="nb">3</span>:
+        <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(ch) - <span class="nb">2</span>):
+        <span class="kw">if not</span> (ch[i] == ch[i+<span class="nb">2</span>] <span class="kw">and</span> ch[i] != ch[i+<span class="nb">1</span>]):
+            <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">return</span> <span class="kw">True</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PARFAIT ── -->
+    <div class="panel" id="panel-parfait">
+      <div class="tool-header">
+        <div class="tool-header-icon">💎</div>
+        <div>
+          <div class="tool-title">Nombre Parfait</div>
+          <div class="tool-subtitle">Un entier est parfait si la somme de ses diviseurs propres est égale à lui-même. Ex : 6 = 1+2+3.</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>Entier n &gt; 0</label>
+            <input type="text" id="pf-n" placeholder="ex: 28" onkeydown="if(event.key==='Enter')calcParfait()">
+          </div>
+          <button class="btn" onclick="calcParfait()">Vérifier</button>
+          <div id="pf-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('pf-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="pf-code"><span class="kw">def</span> <span class="fn">parfait</span>(n):
+    s = <span class="fn">sum</span>(i <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nb">1</span>, n)
+          <span class="kw">if</span> n % i == <span class="nb">0</span>)
+    <span class="kw">return</span> s == n</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LISSE ── -->
+    <div class="panel" id="panel-lisse">
+      <div class="tool-header">
+        <div class="tool-header-icon">🧮</div>
+        <div>
+          <div class="tool-title">Nombre Lisse</div>
+          <div class="tool-subtitle">Un entier n est lisse si son plus grand facteur premier est ≤ √n.</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>Entier n &gt; 1</label>
+            <input type="text" id="l-n" placeholder="ex: 12" onkeydown="if(event.key==='Enter')calcLisse()">
+          </div>
+          <button class="btn" onclick="calcLisse()">Vérifier</button>
+          <div id="l-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('l-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="l-code"><span class="kw">import</span> math
+
+<span class="kw">def</span> <span class="fn">lisse</span>(x):
+    pg = <span class="nb">2</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nb">1</span>, x):
+        <span class="kw">if</span> x % i == <span class="nb">0</span> <span class="kw">and</span> <span class="fn">premier</span>(i) <span class="kw">and</span> i &gt; pg:
+            pg = i
+    <span class="kw">return</span> pg &lt;= math.<span class="fn">sqrt</span>(x)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEMI ── -->
+    <div class="panel" id="panel-semi">
+      <div class="tool-header">
+        <div class="tool-header-icon">✂️</div>
+        <div>
+          <div class="tool-title">Nombre Semi-Premier</div>
+          <div class="tool-subtitle">Un entier est semi-premier s'il est le produit de deux nombres premiers (pas forcément distincts). Ex : 15 = 3×5.</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>Entier n &gt; 2</label>
+            <input type="text" id="s-n" placeholder="ex: 15" onkeydown="if(event.key==='Enter')calcSemi()">
+          </div>
+          <button class="btn" onclick="calcSemi()">Vérifier</button>
+          <div id="s-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('s-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="s-code"><span class="kw">def</span> <span class="fn">semi_premier</span>(n):
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nb">2</span>, n):
+        <span class="kw">if</span> n % i == <span class="nb">0</span>:
+            j = n // i
+            <span class="kw">if</span> <span class="fn">premier</span>(i) <span class="kw">and</span> <span class="fn">premier</span>(j):
+                <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">return</span> <span class="kw">False</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MARSEN ── -->
+    <div class="panel" id="panel-marsen">
+      <div class="tool-header">
+        <div class="tool-header-icon">⚡</div>
+        <div>
+          <div class="tool-title">Nombre de Mersenne</div>
+          <div class="tool-subtitle">Un nombre de Mersenne a la forme 2<sup>p</sup> − 1 où p est premier. Ex : 7 = 2³ − 1.</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>Entier n &gt; 0</label>
+            <input type="text" id="m-n" placeholder="ex: 31" onkeydown="if(event.key==='Enter')calcMarsen()">
+          </div>
+          <button class="btn" onclick="calcMarsen()">Vérifier</button>
+          <div id="m-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('m-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="m-code"><span class="kw">def</span> <span class="fn">mersenne</span>(n):
+    k = <span class="nb">2</span>
+    <span class="kw">while</span> <span class="nb">2</span>**k - <span class="nb">1</span> &lt; n:
+        k += <span class="nb">1</span>
+    <span class="kw">return</span> <span class="nb">2</span>**k - <span class="nb">1</span> == n <span class="kw">and</span> <span class="fn">premier</span>(k)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUPER ── -->
+    <div class="panel" id="panel-super">
+      <div class="tool-header">
+        <div class="tool-header-icon">⭐</div>
+        <div>
+          <div class="tool-title">Nombre Super Pair Plus</div>
+          <div class="tool-subtitle">Un entier est super pair plus si lui-même, tous ses chiffres, et tous ses diviseurs sont pairs.</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>Entier n &gt; 0</label>
+            <input type="text" id="sp-n" placeholder="ex: 8" onkeydown="if(event.key==='Enter')calcSuper()">
+          </div>
+          <button class="btn" onclick="calcSuper()">Vérifier</button>
+          <div id="sp-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('sp-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="sp-code"><span class="kw">def</span> <span class="fn">super_pair_plus</span>(n):
+    <span class="cm"># le nombre lui-même doit être pair</span>
+    <span class="kw">if</span> n % <span class="nb">2</span> != <span class="nb">0</span>:
+        <span class="kw">return</span> <span class="kw">False</span>
+    <span class="cm"># tous les chiffres doivent être pairs</span>
+    <span class="kw">for</span> d <span class="kw">in</span> <span class="fn">str</span>(n):
+        <span class="kw">if</span> <span class="fn">int</span>(d) % <span class="nb">2</span> != <span class="nb">0</span>:
+            <span class="kw">return</span> <span class="kw">False</span>
+    <span class="cm"># tous les diviseurs doivent être pairs</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nb">1</span>, n):
+        <span class="kw">if</span> n % i == <span class="nb">0</span> <span class="kw">and</span> i % <span class="nb">2</span> != <span class="nb">0</span>:
+            <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">return</span> <span class="kw">True</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PGCD ── -->
+    <div class="panel" id="panel-pgcd">
+      <div class="tool-header">
+        <div class="tool-header-icon">🔗</div>
+        <div>
+          <div class="tool-title">PGCD</div>
+          <div class="tool-subtitle">Plus Grand Commun Diviseur — par différence successive ou division euclidienne.</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>X</label>
+            <input type="text" id="pg-x" placeholder="ex: 48">
+          </div>
+          <div class="field-group">
+            <label>Y</label>
+            <input type="text" id="pg-y" placeholder="ex: 18" onkeydown="if(event.key==='Enter')calcPgcd()">
+          </div>
+          <div class="radio-group">
+            <label style="color:var(--text2);font-size:0.8rem;text-transform:none;letter-spacing:0">Méthode :</label>
+            <label class="radio-opt"><input type="radio" name="pgcd-method" value="diff" checked> Différence successive</label>
+            <label class="radio-opt"><input type="radio" name="pgcd-method" value="euc"> Division euclidienne</label>
+          </div>
+          <button class="btn" onclick="calcPgcd()">Calculer</button>
+          <div id="pg-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('pg-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="pg-code"><span class="cm"># Méthode par différence</span>
+<span class="kw">def</span> <span class="fn">pgcd_diff</span>(x, y):
+    <span class="kw">while</span> x != y:
+        <span class="kw">if</span> x &gt; y:
+            x -= y
+        <span class="kw">else</span>:
+            y -= x
+    <span class="kw">return</span> x
+
+<span class="cm"># Méthode euclidienne</span>
+<span class="kw">def</span> <span class="fn">pgcd_euc</span>(x, y):
+    <span class="kw">while</span> y != <span class="nb">0</span>:
+        x, y = y, x % y
+    <span class="kw">return</span> x</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PPCM ── -->
+    <div class="panel" id="panel-ppcm">
+      <div class="tool-header">
+        <div class="tool-header-icon">🔀</div>
+        <div>
+          <div class="tool-title">PPCM</div>
+          <div class="tool-subtitle">Plus Petit Commun Multiple de deux entiers.</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>X</label>
+            <input type="text" id="pp-x" placeholder="ex: 4">
+          </div>
+          <div class="field-group">
+            <label>Y</label>
+            <input type="text" id="pp-y" placeholder="ex: 6" onkeydown="if(event.key==='Enter')calcPpcm()">
+          </div>
+          <button class="btn" onclick="calcPpcm()">Calculer</button>
+          <div id="pp-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('pp-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="pp-code"><span class="kw">def</span> <span class="fn">pgcd</span>(x, y):
+    <span class="kw">while</span> y != <span class="nb">0</span>:
+        x, y = y, x % y
+    <span class="kw">return</span> x
+
+<span class="kw">def</span> <span class="fn">ppcm</span>(x, y):
+    <span class="kw">return</span> (x * y) // <span class="fn">pgcd</span>(x, y)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FACTORIEL ── -->
+    <div class="panel" id="panel-factoriel">
+      <div class="tool-header">
+        <div class="tool-header-icon">❗</div>
+        <div>
+          <div class="tool-title">Factoriel</div>
+          <div class="tool-subtitle">n! = 1 × 2 × 3 × … × n</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>Entier n &gt; 0</label>
+            <input type="text" id="f-n" placeholder="ex: 7" onkeydown="if(event.key==='Enter')calcFact()">
+          </div>
+          <button class="btn" onclick="calcFact()">Calculer</button>
+          <div id="f-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('f-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="f-code"><span class="kw">def</span> <span class="fn">factoriel</span>(n):
+    f = <span class="nb">1</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nb">1</span>, n + <span class="nb">1</span>):
+        f *= i
+    <span class="kw">return</span> f</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PUISSANCE ── -->
+    <div class="panel" id="panel-puissance">
+      <div class="tool-header">
+        <div class="tool-header-icon">📈</div>
+        <div>
+          <div class="tool-title">Puissance</div>
+          <div class="tool-subtitle">Calcule x<sup>y</sup>.</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>Base x</label>
+            <input type="text" id="pu-x" placeholder="ex: 2">
+          </div>
+          <div class="field-group">
+            <label>Exposant y</label>
+            <input type="text" id="pu-y" placeholder="ex: 10" onkeydown="if(event.key==='Enter')calcPuis()">
+          </div>
+          <button class="btn" onclick="calcPuis()">Calculer</button>
+          <div id="pu-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('pu-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="pu-code"><span class="kw">def</span> <span class="fn">puissance</span>(x, y):
+    p = <span class="nb">1</span>
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">abs</span>(y)):
+        p *= x
+    <span class="kw">if</span> y &lt; <span class="nb">0</span>:
+        <span class="kw">return</span> <span class="nb">1</span> / p
+    <span class="kw">return</span> p</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── COMBINAISON ── -->
+    <div class="panel" id="panel-combinaison">
+      <div class="tool-header">
+        <div class="tool-header-icon">🎲</div>
+        <div>
+          <div class="tool-title">Combinaison C(n, p)</div>
+          <div class="tool-subtitle">Nombre de façons de choisir p éléments parmi n. C(n,p) = n! / (p! × (n−p)!)</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>N</label>
+            <input type="text" id="c-n" placeholder="ex: 5">
+          </div>
+          <div class="field-group">
+            <label>P</label>
+            <input type="text" id="c-p" placeholder="ex: 2" onkeydown="if(event.key==='Enter')calcCombin()">
+          </div>
+          <button class="btn" onclick="calcCombin()">Calculer</button>
+          <div id="c-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+          <div class="note">Requis : 0 ≤ p ≤ n</div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('c-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="c-code"><span class="kw">def</span> <span class="fn">combinaison</span>(n, p):
+    <span class="kw">return</span> (<span class="fn">factoriel</span>(n)
+            // (<span class="fn">factoriel</span>(p) * <span class="fn">factoriel</span>(n - p)))</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONVERT ── -->
+    <div class="panel" id="panel-convert">
+      <div class="tool-header">
+        <div class="tool-header-icon">🔄</div>
+        <div>
+          <div class="tool-title">Conversion de Base</div>
+          <div class="tool-subtitle">Convertir entre base 10 et une base N (2 à 36).</div>
+        </div>
+      </div>
+      <div class="tool-body">
+        <div>
+          <div class="field-group">
+            <label>Valeur à convertir</label>
+            <input type="text" id="cv-n" placeholder="ex: 255 ou FF">
+          </div>
+          <div class="field-group">
+            <label>Base (2 – 36)</label>
+            <input type="text" id="cv-b" placeholder="ex: 16" onkeydown="if(event.key==='Enter')calcConvert()">
+          </div>
+          <div class="radio-group">
+            <label style="color:var(--text2);font-size:0.8rem;text-transform:none;letter-spacing:0">Opération :</label>
+            <label class="radio-opt"><input type="radio" name="cv-op" value="to10" checked> Base N → Décimal</label>
+            <label class="radio-opt"><input type="radio" name="cv-op" value="fromD"> Décimal → Base N</label>
+          </div>
+          <button class="btn" onclick="calcConvert()">Convertir</button>
+          <div id="cv-result" class="result-box" style="margin-top:1rem">
+            <span class="result-placeholder">Le résultat apparaîtra ici</span>
+          </div>
+        </div>
+        <div>
+          <button class="code-toggle" onclick="toggleCode('cv-code')">⌥ Voir le code Python</button>
+          <div class="code-block" id="cv-code"><span class="cm"># Base N → décimal</span>
+<span class="kw">def</span> <span class="fn">vers_decimal</span>(ch, b):
+    n, p = <span class="nb">0</span>, <span class="nb">1</span>
+    <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">reversed</span>(ch.<span class="fn">upper</span>()):
+        v = <span class="fn">int</span>(c) <span class="kw">if</span> c.isdigit() <span class="kw">else</span> <span class="fn">ord</span>(c) - <span class="nb">55</span>
+        n += v * p
+        p *= b
+    <span class="kw">return</span> n
+
+<span class="cm"># Décimal → base N</span>
+<span class="kw">def</span> <span class="fn">vers_base</span>(n, b):
+    ch = <span class="st">""</span>
+    <span class="kw">while</span> n != <span class="nb">0</span>:
+        r = n % b
+        ch = (<span class="fn">str</span>(r) <span class="kw">if</span> r &lt; <span class="nb">10</span> <span class="kw">else</span> <span class="fn">chr</span>(r + <span class="nb">55</span>)) + ch
+        n //= b
+    <span class="kw">return</span> ch <span class="kw">or</span> <span class="st">"0"</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DEPLOY ── -->
+    <div class="panel" id="panel-deploy">
+      <div class="tool-header">
+        <div class="tool-header-icon">🌐</div>
+        <div>
+          <div class="tool-title">Mettre en ligne</div>
+          <div class="tool-subtitle">Comment déployer MathPath sur GitHub Pages — gratuit, sans serveur, URL publique.</div>
+        </div>
+      </div>
+
+      <div class="deploy-card">
+        <h3><span class="step-badge">Étape 1</span> Créer un compte GitHub</h3>
+        <p>Allez sur <strong>github.com</strong> et créez un compte gratuit si vous n'en avez pas.</p>
+      </div>
+
+      <div class="deploy-card">
+        <h3><span class="step-badge">Étape 2</span> Créer un nouveau dépôt</h3>
+        <ol>
+          <li>Cliquez sur <strong>New repository</strong></li>
+          <li>Nommez-le <code>mathpath</code></li>
+          <li>Laissez-le <strong>Public</strong></li>
+          <li>Cochez <strong>Add a README file</strong></li>
+          <li>Cliquez <strong>Create repository</strong></li>
+        </ol>
+      </div>
+
+      <div class="deploy-card">
+        <h3><span class="step-badge">Étape 3</span> Uploader le fichier</h3>
+        <ol>
+          <li>Dans votre dépôt, cliquez <strong>Add file → Upload files</strong></li>
+          <li>Glissez-déposez le fichier <code>index.html</code> téléchargé</li>
+          <li>Cliquez <strong>Commit changes</strong></li>
+        </ol>
+      </div>
+
+      <div class="deploy-card">
+        <h3><span class="step-badge">Étape 4</span> Activer GitHub Pages</h3>
+        <ol>
+          <li>Allez dans <strong>Settings</strong> de votre dépôt</li>
+          <li>Cliquez sur <strong>Pages</strong> dans le menu gauche</li>
+          <li>Sous <em>Source</em>, choisissez <strong>Deploy from a branch</strong></li>
+          <li>Branch : <code>main</code>, dossier : <code>/ (root)</code></li>
+          <li>Cliquez <strong>Save</strong></li>
+        </ol>
+      </div>
+
+      <div class="deploy-card" style="border-color: var(--accent);">
+        <h3>✅ Votre site est en ligne !</h3>
+        <p>Après 1–2 minutes, votre MathPath est accessible à :<br>
+        <code style="margin-top:6px;display:inline-block;">https://votre-username.github.io/mathpath/</code></p>
+        <p style="margin-top:0.7rem;">Partagez ce lien avec qui vous voulez — aucun coût, aucun serveur, visible par tous.</p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── NAVIGATION ──
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  const navEl = document.getElementById('nav-' + id);
+  if (navEl) navEl.classList.add('active');
+}
+
+function toggleCode(id) {
+  document.getElementById(id).classList.toggle('visible');
+}
+
+// ── RESULT HELPERS ──
+function setResult(id, text, isPositive) {
+  const box = document.getElementById(id);
+  box.innerHTML = `<div>
+    <div class="result-prefix">›› Résultat</div>
+    <div class="result-value${isPositive === false ? ' negative' : ''}">${text}</div>
+  </div>`;
+  box.className = 'result-box ' + (isPositive !== false ? 'has-result' : 'has-false');
+}
+
+function errMsg(id, msg) {
+  const box = document.getElementById(id);
+  box.innerHTML = `<div class="result-value negative">⚠ ${msg}</div>`;
+  box.className = 'result-box has-false';
+}
+
+// ── MATH HELPERS ──
+function estPremier(n) {
+  if (n < 2) return false;
+  for (let i = 2; i <= Math.sqrt(n); i++) {
+    if (n % i === 0) return false;
+  }
+  return true;
+}
+
+function factoriel(n) {
+  let f = 1n; // BigInt for large factorials
+  for (let i = 2; i <= n; i++) f *= BigInt(i);
+  return f;
+}
+
+function puissanceHelper(x, y) {
+  let p = 1;
+  for (let i = 0; i < Math.abs(y); i++) p *= x;
+  return y < 0 ? 1 / p : p;
+}
+
+// ── CALCULATORS ──
+function calcPremier() {
+  const n = parseInt(document.getElementById('p-n').value);
+  if (isNaN(n) || n < 2) return errMsg('p-result', 'Entrez un entier > 1');
+  const ok = estPremier(n);
+  setResult('p-result', ok ? `${n} est un nombre premier` : `${n} n'est pas premier (il a des diviseurs autres que 1 et lui-même)`, ok);
+}
+
+function calcOnd() {
+  const ch = document.getElementById('o-n').value.trim();
+  if (!/^\d+$/.test(ch) || ch.length < 3) return errMsg('o-result', 'Entrez un entier de 3 chiffres minimum');
+  let ok = true;
+  for (let i = 0; i < ch.length - 2; i++) {
+    if (!(ch[i] === ch[i + 2] && ch[i] !== ch[i + 1])) { ok = false; break; }
+  }
+  setResult('o-result', ok ? `${ch} est un nombre ondulant` : `${ch} n'est pas ondulant`, ok);
+}
+
+function calcParfait() {
+  const n = parseInt(document.getElementById('pf-n').value);
+  if (isNaN(n) || n <= 0) return errMsg('pf-result', 'Entrez un entier > 0');
+  let s = 0;
+  for (let i = 1; i < n; i++) if (n % i === 0) s += i;
+  const ok = s === n;
+  const detail = ok ? `` : ` (somme des diviseurs = ${s})`;
+  setResult('pf-result', ok ? `${n} est un nombre parfait ✓` : `${n} n'est pas parfait${detail}`, ok);
+}
+
+function calcLisse() {
+  const x = parseInt(document.getElementById('l-n').value);
+  if (isNaN(x) || x <= 1) return errMsg('l-result', 'Entrez un entier > 1');
+  let pg = 2;
+  for (let i = 1; i < x; i++) {
+    if (x % i === 0 && estPremier(i) && i > pg) pg = i;
+  }
+  const ok = pg <= Math.sqrt(x);
+  setResult('l-result', ok ? `${x} est lisse (plus grand facteur premier = ${pg} ≤ √${x} ≈ ${Math.sqrt(x).toFixed(2)})` : `${x} n'est pas lisse (plus grand facteur premier = ${pg} > √${x} ≈ ${Math.sqrt(x).toFixed(2)})`, ok);
+}
+
+function calcSemi() {
+  const n = parseInt(document.getElementById('s-n').value);
+  if (isNaN(n) || n <= 2) return errMsg('s-result', 'Entrez un entier > 2');
+  let ok = false;
+  let facteurs = '';
+  for (let i = 2; i < n; i++) {
+    if (n % i === 0) {
+      const j = n / i;
+      if (estPremier(i) && estPremier(j)) { ok = true; facteurs = `${i} × ${j}`; break; }
+    }
+  }
+  setResult('s-result', ok ? `${n} est semi-premier : ${facteurs}` : `${n} n'est pas semi-premier`, ok);
+}
+
+function calcMarsen() {
+  const n = parseInt(document.getElementById('m-n').value);
+  if (isNaN(n) || n <= 0) return errMsg('m-result', 'Entrez un entier > 0');
+  let k = 2;
+  while (Math.pow(2, k) - 1 < n) k++;
+  const ok = (Math.pow(2, k) - 1 === n) && estPremier(k);
+  setResult('m-result', ok ? `${n} est un nombre de Mersenne (2^${k} − 1, p=${k} est premier)` : `${n} n'est pas un nombre de Mersenne`, ok);
+}
+
+function calcSuper() {
+  const n = parseInt(document.getElementById('sp-n').value);
+  if (isNaN(n) || n <= 0) return errMsg('sp-result', 'Entrez un entier > 0');
+  let ok = true;
+  if (n % 2 !== 0) ok = false;
+  if (ok) {
+    for (const d of String(n)) { if (parseInt(d) % 2 !== 0) { ok = false; break; } }
+  }
+  if (ok) {
+    for (let i = 1; i < n; i++) { if (n % i === 0 && i % 2 !== 0) { ok = false; break; } }
+  }
+  setResult('sp-result', ok ? `${n} est Super Pair Plus ✓` : `${n} n'est pas Super Pair Plus`, ok);
+}
+
+function calcPgcd() {
+  let x = parseInt(document.getElementById('pg-x').value);
+  let y = parseInt(document.getElementById('pg-y').value);
+  if (isNaN(x) || isNaN(y) || x <= 0 || y <= 0) return errMsg('pg-result', 'Entrez deux entiers positifs');
+  const method = document.querySelector('input[name="pgcd-method"]:checked').value;
+  const ox = x, oy = y;
+  if (method === 'diff') {
+    while (x !== y) { if (x > y) x -= y; else y -= x; }
+  } else {
+    while (y !== 0) { let r = x % y; x = y; y = r; }
+  }
+  setResult('pg-result', `PGCD(${ox}, ${oy}) = ${x}`, true);
+}
+
+function calcPpcm() {
+  const ox = parseInt(document.getElementById('pp-x').value);
+  const oy = parseInt(document.getElementById('pp-y').value);
+  if (isNaN(ox) || isNaN(oy) || ox <= 0 || oy <= 0) return errMsg('pp-result', 'Entrez deux entiers positifs');
+  let a = ox, b = oy;
+  while (b !== 0) { let r = a % b; a = b; b = r; }
+  const result = (ox * oy) / a;
+  setResult('pp-result', `PPCM(${ox}, ${oy}) = ${result}`, true);
+}
+
+function calcFact() {
+  const n = parseInt(document.getElementById('f-n').value);
+  if (isNaN(n) || n <= 0) return errMsg('f-result', 'Entrez un entier > 0');
+  if (n > 170) return errMsg('f-result', 'Trop grand — utilisez Python pour n > 170');
+  setResult('f-result', `${n}! = ${factoriel(n).toLocaleString()}`, true);
+}
+
+function calcPuis() {
+  const x = parseFloat(document.getElementById('pu-x').value);
+  const y = parseInt(document.getElementById('pu-y').value);
+  if (isNaN(x) || isNaN(y)) return errMsg('pu-result', 'Entrez deux nombres');
+  const p = puissanceHelper(x, y);
+  setResult('pu-result', `${x}^${y} = ${p.toLocaleString()}`, true);
+}
+
+function calcCombin() {
+  const n = parseInt(document.getElementById('c-n').value);
+  const p = parseInt(document.getElementById('c-p').value);
+  if (isNaN(n) || isNaN(p) || n < 0 || p < 0) return errMsg('c-result', 'Entrez deux entiers positifs');
+  if (p > n) return errMsg('c-result', 'p doit être ≤ n');
+  const c = factoriel(n) / (factoriel(p) * factoriel(n - p));
+  setResult('c-result', `C(${n}, ${p}) = ${c.toLocaleString()}`, true);
+}
+
+function calcConvert() {
+  const val = document.getElementById('cv-n').value.trim().toUpperCase();
+  const base = parseInt(document.getElementById('cv-b').value);
+  const op = document.querySelector('input[name="cv-op"]:checked').value;
+  if (!val || isNaN(base) || base < 2 || base > 36) return errMsg('cv-result', 'Vérifiez la valeur et la base (2–36)');
+  if (op === 'to10') {
+    let n = 0, p = 1;
+    for (let i = val.length - 1; i >= 0; i--) {
+      const c = val[i];
+      const v = c >= '0' && c <= '9' ? parseInt(c) : c.charCodeAt(0) - 55;
+      if (v >= base) return errMsg('cv-result', `Chiffre "${c}" invalide pour la base ${base}`);
+      n += v * p;
+      p *= base;
+    }
+    setResult('cv-result', `${val} (base ${base}) = ${n} (base 10)`, true);
+  } else {
+    let n = parseInt(val);
+    if (isNaN(n) || n < 0) return errMsg('cv-result', 'Entrez un entier décimal positif');
+    if (n === 0) return setResult('cv-result', `0 (base ${base})`, true);
+    let ch = '';
+    while (n !== 0) {
+      const r = n % base;
+      ch = (r < 10 ? r.toString() : String.fromCharCode(r + 55)) + ch;
+      n = Math.floor(n / base);
+    }
+    setResult('cv-result', `${val} (base 10) = ${ch} (base ${base})`, true);
+  }
+}
+</script>
+</body>
+</html>
